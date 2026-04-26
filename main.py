@@ -23,7 +23,4 @@ print(auto1.license_plate,auto1.make,auto1.type,auto1.engine,auto1.cylinder,auto
 
 auto1.make = "Jeep"
 print(auto1.make)
-print(auto1.license_plate)
-print(auto1.engine)
-print(auto1.cylinder)
-print(auto1.rent)
+
