@@ -1,0 +1,9 @@
+# PyCharm beállítások
+.idea/
+
+# VS Code beállítások
+.vscode/
+
+# Python ideiglenes fájlok
+__pycache__/
+*.pyc
