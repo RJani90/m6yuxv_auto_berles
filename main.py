@@ -168,7 +168,6 @@ class Company:
                 rental_to_cancel = r
                 break
 
-        # Ha nem találjuk, egyből kilépünk a hibával
         if not rental_to_cancel:
             return "Hiba: Nem található ilyen bérlés a rendszerben a megadott adatokkal."
 
