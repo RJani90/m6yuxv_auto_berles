@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 
 # ==========================================
-# 1. VEHICLE CLASSES (Autó osztályok)
+# 1. Autó osztályok
 # ==========================================
 
 class Vehicle(ABC):
@@ -104,6 +104,7 @@ class Rental:
 # 3. Company osztály (Autókölcsönző)
 # ==========================================
 
+# noinspection PyTypeChecker
 class Company:
     """A kölcsönzőt és az üzleti logikát kezelő főosztály."""
 
@@ -180,6 +181,7 @@ class Company:
         # 4. Eldöntjük, hogy kell-e büntetést fizetni (ha 1 nap, vagy annál kevesebb van hátra)
         if days_difference <= 1:
             # Kiszámoljuk a teljes ár 25%-át
+            # noinspection PyUnresolvedReferences
             penalty = int(rental_to_cancel.total_price * 0.25)
             return f"FIGYELMEZTETÉS (Késői lemondás)! A {license_plate} bérlése törölve. Az 1 napon belüli lemondás miatt a fizetendő kötbér: {penalty} HUF."
         else:
@@ -206,7 +208,7 @@ class Company:
             return "Hiba: A bérlés vége dátum nem lehet korábban, mint a bérlés kezdete."
 
         # 3. Megkeressük a járművet a rendszám alapján
-        vehicle_to_rent = None
+        vehicle_to_rent: Vehicle = None
         for v in self.__vehicles:
             if v.license_plate == license_plate:
                 vehicle_to_rent = v
@@ -285,6 +287,7 @@ if __name__ == "__main__":
 
 
     # Autók hozzáadása a kölcsönzőhöz
+    # noinspection DuplicatedCode
     company.add_vehicle(car1)
     company.add_vehicle(car2)
     company.add_vehicle(car3)
@@ -295,6 +298,7 @@ if __name__ == "__main__":
     company.add_vehicle(car8)
 
     # Teherautók hozzáadása a kölcsönzőhöz
+    # noinspection DuplicatedCode
     company.add_vehicle(truck1)
     company.add_vehicle(truck2)
     company.add_vehicle(truck3)
@@ -335,24 +339,24 @@ if __name__ == "__main__":
             rendszam = input("Kérem a rendszámot (pl. ABC-123): ").upper()
 
             # Ellenőrizzük, hogy van-e már ilyen rendszám
-            if any(v.license_plate == rendszam for v in company._Company__vehicles):
+            if any(v.license_plate == rendszam for v in company.vehicles):
                 print("-> Hiba: Ez a rendszám már szerepel a rendszerben!")
                 continue
 
-            make = input("Márka (pl. Ford): ")
-            car_type = input("Típus (pl. Focus): ")
-            engine = (float(input("Motor (pl. 1.6): ")))
+            new_make = input("Márka (pl. Ford): ")
+            new_car_type = input("Típus (pl. Focus): ")
+            new_engine = (float(input("Motor (pl. 1.6): ")))
 
             try:
                 price = int(input("Napi bérleti díj (HUF): "))
                 if tipus == "1":
                     capacity = int(input("Utasok száma (pl. 5): "))
-                    uj_auto = Auto(rendszam, make, car_type, engine, capacity,price)
+                    uj_auto = Auto(rendszam, new_make, new_car_type, new_engine, capacity,price)
                     company.add_vehicle(uj_auto)
                     print(f"-> SIKER: A {rendszam} rendszámú személyautó hozzáadva a flottához!")
                 elif tipus == "2":
                     cargo = float(input("Raktér mérete (m3, pl. 3.5): "))
-                    uj_teher = Truck(rendszam, make, car_type, engine, cargo, price)
+                    uj_teher = Truck(rendszam, new_make, new_car_type, new_engine, cargo, price)
                     company.add_vehicle(uj_teher)
                     print(f"-> SIKER: A {rendszam} rendszámú teherautó hozzáadva a flottához!")
             except ValueError:
@@ -381,7 +385,7 @@ if __name__ == "__main__":
         elif valasztas == "4":
             rendszam = input("Kérem a bérelni kívánt jármű rendszámát (pl. HKR-219): ").upper()
 
-            car_exist = any(v.license_plate == rendszam for v in company._Company__vehicles)
+            car_exist = any(v.license_plate == rendszam for v in company.vehicles)
             if not car_exist:
                 print(
                     "\n-> Hiba: Nincs ilyen rendszámú jármű a rendszerben! Kérem, ellenőrizze a listát az 1-es menüpontban.")
@@ -395,7 +399,7 @@ if __name__ == "__main__":
         elif valasztas == "5":
             rendszam = input("Kérem a lemondani kívánt jármű rendszámát: ").upper()
 
-            car_exist = any(v.license_plate == rendszam for v in company._Company__vehicles)
+            car_exist = any(v.license_plate == rendszam for v in company.vehicles)
             if not car_exist:
                 print("\n-> Hiba: Nincs ilyen rendszámú jármű a rendszerben!")
                 continue
