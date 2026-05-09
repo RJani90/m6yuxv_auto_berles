@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 # Autó osztályok
 # ==========================================
 
-class Vehicle(ABC):
+class Auto(ABC):
     """Absztrakt alaposztály az összes járműnek."""
 
     def __init__(self, license_plate: str, make: str, car_type: str, engine: float, rental_price: int):
@@ -41,7 +41,7 @@ class Vehicle(ABC):
         pass
 
 
-class Auto(Vehicle):
+class Szemelyauto(Auto):
     """Személyautó osztály."""
 
     def __init__(self, license_plate: str, make: str, car_type: str, engine: float, passenger_capacity: int, rental_price: int,):
@@ -56,7 +56,7 @@ class Auto(Vehicle):
         return f"Car - Plate: {self.license_plate} | Model: {self.make} {self.car_type} | Engine: {self.engine} | Passengers: {self.passenger_capacity} | Price: {self.rental_price} HUF/day"
 
 
-class Truck(Vehicle):
+class Teherauto(Auto):
     """Teherautó osztály."""
 
     def __init__(self, license_plate: str, make: str, car_type: str, engine:float, cargo_space: float, rental_price: int ):
@@ -75,10 +75,10 @@ class Truck(Vehicle):
 # Bérlés osztály
 # ==========================================
 
-class Rental:
+class Berles:
     """Egy adott bérlés osztálya."""
 
-    def __init__(self, vehicle: Vehicle, start_date: str, end_date:str, total_price: int):
+    def __init__(self, vehicle: Auto, start_date: str, end_date:str, total_price: int):
         self.__vehicle = vehicle
         self.__start_date = start_date
         self.__end_date = end_date
@@ -109,7 +109,7 @@ class Rental:
 # ==========================================
 
 # noinspection PyTypeChecker
-class Company:
+class Autokolcsonzo:
     """A kölcsönzőt és az üzleti logikát kezelő főosztály."""
 
     def __init__(self, name: str):
@@ -125,7 +125,7 @@ class Company:
     def rentals(self):
         return self.__rentals
 
-    def add_vehicle(self, vehicle: Vehicle):
+    def add_vehicle(self, vehicle: Auto):
         """Hozzáad egy új járművet a kölcsönzőhöz."""
         self.__vehicles.append(vehicle)
 
@@ -212,7 +212,7 @@ class Company:
             return "Hiba: A bérlés vége dátum nem lehet korábban, mint a bérlés kezdete."
 
         # Megkeressük a járművet a rendszám alapján
-        vehicle_to_rent: Vehicle = None
+        vehicle_to_rent: Auto = None
         for v in self.__vehicles:
             if v.license_plate == license_plate:
                 vehicle_to_rent = v
@@ -237,7 +237,7 @@ class Company:
 
         total_price = days * vehicle_to_rent.rental_price
 
-        new_rental = Rental(vehicle_to_rent, start_date_str, end_date_str, total_price)
+        new_rental = Berles(vehicle_to_rent, start_date_str, end_date_str, total_price)
         self.__rentals.append(new_rental)
 
         osszesito = (
@@ -267,27 +267,27 @@ class Company:
 
 if __name__ == "__main__":
     # Kölcsönző létrehozása
-    company = Company("OOP Autókölcsönző")
+    company = Autokolcsonzo("OOP Autókölcsönző")
 
     # Autók létrehozása
-    car1 = Auto(license_plate="HKR-219", make="Toyota", car_type="Corolla", engine=1.6, rental_price=16000, passenger_capacity=5)
-    car2 = Auto(license_plate="JGF-342", make="Skoda", car_type="Octavia", engine=2.2, rental_price=18000, passenger_capacity=5)
-    car3 = Auto(license_plate="MBN-555", make="Volkswagen", car_type="Golf", engine=1.4, rental_price=15000, passenger_capacity=5)
-    car4 = Auto(license_plate="PTA-112", make="Suzuki", car_type="Vitara", engine=1.2, rental_price=17000, passenger_capacity=5)
-    car5 = Auto(license_plate="KJL-987", make="Opel", car_type="Astra", engine=1.4, rental_price=13000, passenger_capacity=5)
-    car6 = Auto(license_plate="RWC-404", make="Kia", car_type="Ceed", engine=1.6, rental_price=16000, passenger_capacity=5)
-    car7 = Auto(license_plate="TXZ-777", make="Ford", car_type="Focus", engine=1.8, rental_price=14000, passenger_capacity=5)
-    car8 = Auto(license_plate="AA-BB-123", make="Hyundai", car_type="Tucson", engine=1.4, rental_price=22000, passenger_capacity=5)
+    car1 = Szemelyauto(license_plate="HKR-219", make="Toyota", car_type="Corolla", engine=1.6, rental_price=16000, passenger_capacity=5)
+    car2 = Szemelyauto(license_plate="JGF-342", make="Skoda", car_type="Octavia", engine=2.2, rental_price=18000, passenger_capacity=5)
+    car3 = Szemelyauto(license_plate="MBN-555", make="Volkswagen", car_type="Golf", engine=1.4, rental_price=15000, passenger_capacity=5)
+    car4 = Szemelyauto(license_plate="PTA-112", make="Suzuki", car_type="Vitara", engine=1.2, rental_price=17000, passenger_capacity=5)
+    car5 = Szemelyauto(license_plate="KJL-987", make="Opel", car_type="Astra", engine=1.4, rental_price=13000, passenger_capacity=5)
+    car6 = Szemelyauto(license_plate="RWC-404", make="Kia", car_type="Ceed", engine=1.6, rental_price=16000, passenger_capacity=5)
+    car7 = Szemelyauto(license_plate="TXZ-777", make="Ford", car_type="Focus", engine=1.8, rental_price=14000, passenger_capacity=5)
+    car8 = Szemelyauto(license_plate="AA-BB-123", make="Hyundai", car_type="Tucson", engine=1.4, rental_price=22000, passenger_capacity=5)
 
     # Teherautók létrehozása
-    truck1 = Truck(license_plate="TRK-999", make="Ford", car_type="Transit", engine=2.6, rental_price=25000, cargo_space=1.5)
-    truck2 = Truck(license_plate="LKH-890", make="Mercedes", car_type="Sprinter", engine=3.0, rental_price=32000, cargo_space=3.5)
-    truck3 = Truck(license_plate="GTR-221", make="Fiat", car_type="Ducato", engine=2.2, rental_price=27000, cargo_space=3.0)
-    truck4 = Truck(license_plate="VBN-444", make="Renault", car_type="Master", engine=2.6, rental_price=28000, cargo_space=2.8)
-    truck5 = Truck(license_plate="WQA-101", make="Iveco", car_type="Daily", engine=2.4, rental_price=35000, cargo_space=4.2)
-    truck6 = Truck(license_plate="SDF-654", make="Peugeot", car_type="Boxer", engine=2.8, rental_price=26000, cargo_space=2.5)
-    truck7 = Truck(license_plate="XCV-998", make="Citroen", car_type="Jumper", engine=2.2, rental_price=26000, cargo_space=2.5)
-    truck8 = Truck(license_plate="AA-TC-999", make="Volkswagen", car_type="Crafter", engine=2.6, rental_price=31000,cargo_space=3.2)
+    truck1 = Teherauto(license_plate="TRK-999", make="Ford", car_type="Transit", engine=2.6, rental_price=25000, cargo_space=1.5)
+    truck2 = Teherauto(license_plate="LKH-890", make="Mercedes", car_type="Sprinter", engine=3.0, rental_price=32000, cargo_space=3.5)
+    truck3 = Teherauto(license_plate="GTR-221", make="Fiat", car_type="Ducato", engine=2.2, rental_price=27000, cargo_space=3.0)
+    truck4 = Teherauto(license_plate="VBN-444", make="Renault", car_type="Master", engine=2.6, rental_price=28000, cargo_space=2.8)
+    truck5 = Teherauto(license_plate="WQA-101", make="Iveco", car_type="Daily", engine=2.4, rental_price=35000, cargo_space=4.2)
+    truck6 = Teherauto(license_plate="SDF-654", make="Peugeot", car_type="Boxer", engine=2.8, rental_price=26000, cargo_space=2.5)
+    truck7 = Teherauto(license_plate="XCV-998", make="Citroen", car_type="Jumper", engine=2.2, rental_price=26000, cargo_space=2.5)
+    truck8 = Teherauto(license_plate="AA-TC-999", make="Volkswagen", car_type="Crafter", engine=2.6, rental_price=31000, cargo_space=3.2)
 
 
     # Autók hozzáadása a kölcsönzőhöz
@@ -311,6 +311,12 @@ if __name__ == "__main__":
     company.add_vehicle(truck6)
     company.add_vehicle(truck7)
     company.add_vehicle(truck8)
+
+    # Bérlések létrehozása
+    company.rent_vehicle("HKR-219", "2026-12-20", "2026-12-22")
+    company.rent_vehicle("JGF-342", "2026-10-01", "2026-10-05")
+    company.rent_vehicle("TRK-999", "2026-11-15", "2026-11-15")
+    company.rent_vehicle("WQA-101", "2026-09-18", "2026-10-25")
 
     # === FELHASZNÁLÓI INTERFÉSZ  ===
     print("\nÜdvözöljük az OOP Autókölcsönző Rendszerben!")
@@ -355,12 +361,12 @@ if __name__ == "__main__":
                 price = int(input("Napi bérleti díj (HUF): "))
                 if tipus == "1":
                     capacity = int(input("Utasok száma (pl. 5): "))
-                    uj_auto = Auto(rendszam, new_make, new_car_type, new_engine, capacity,price)
+                    uj_auto = Szemelyauto(rendszam, new_make, new_car_type, new_engine, capacity, price)
                     company.add_vehicle(uj_auto)
                     print(f"-> SIKER: A {rendszam} rendszámú személyautó hozzáadva a flottához!")
                 elif tipus == "2":
                     cargo = float(input("Raktér mérete (m3, pl. 3.5): "))
-                    uj_teher = Truck(rendszam, new_make, new_car_type, new_engine, cargo, price)
+                    uj_teher = Teherauto(rendszam, new_make, new_car_type, new_engine, cargo, price)
                     company.add_vehicle(uj_teher)
                     print(f"-> SIKER: A {rendszam} rendszámú teherautó hozzáadva a flottához!")
             except ValueError:
@@ -416,7 +422,7 @@ if __name__ == "__main__":
             company.list_rentals()
 
         elif valasztas == "7":
-            print("\nKöszönjük, hogy az OOP Autókölcsönzőt használta! Viszontlátásra!")
+            print("\nKöszönjük, hogy az OOP Autókölcsönző rendszert használta! Viszontlátásra!")
             break
 
         else:
