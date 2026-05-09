@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 
 # ==========================================
-# 1. Autó osztályok
+# Autó osztályok
 # ==========================================
 
 class Vehicle(ABC):
@@ -32,6 +32,10 @@ class Vehicle(ABC):
     def rental_price(self):
         return self.__rental_price
 
+    @property
+    def engine(self):
+        return self.__engine
+
     @abstractmethod
     def info(self):
         pass
@@ -49,7 +53,7 @@ class Auto(Vehicle):
         return self.__passenger_capacity
 
     def info(self):
-        return f"Car - Plate: {self.license_plate} | Model: {self.make} {self.car_type} | Passengers: {self.passenger_capacity} | Price: {self.rental_price} HUF/day"
+        return f"Car - Plate: {self.license_plate} | Model: {self.make} {self.car_type} | Engine: {self.engine} | Passengers: {self.passenger_capacity} | Price: {self.rental_price} HUF/day"
 
 
 class Truck(Vehicle):
@@ -64,11 +68,11 @@ class Truck(Vehicle):
         return self.__cargo_space
 
     def info(self):
-        return f"Truck - Plate: {self.license_plate} | Model: {self.make} {self.car_type} | Cargo space: {self.__cargo_space} m3 | Price: {self.rental_price} HUF/day"
+        return f"Truck - Plate: {self.license_plate} | Model: {self.make} {self.car_type} | Engine: {self.engine} | Cargo space: {self.__cargo_space} m3 | Price: {self.rental_price} HUF/day"
 
 
 # ==========================================
-# 2. Bérlés osztály
+# Bérlés osztály
 # ==========================================
 
 class Rental:
@@ -101,7 +105,7 @@ class Rental:
 
 
 # ==========================================
-# 3. Company osztály (Autókölcsönző)
+# Company osztály (Autókölcsönző)
 # ==========================================
 
 # noinspection PyTypeChecker
@@ -128,12 +132,12 @@ class Company:
     def remove_vehicle(self, license_plate: str):
         """Töröl egy járművet a rendszerből a rendszám alapján."""
 
-        # 1. Ellenőrizzük, hogy a járműhöz tartozik-e aktív bérlés
+        # Ellenőrizzük, hogy a járműhöz tartozik-e aktív bérlés
         for r in self.__rentals:
             if r.vehicle.license_plate == license_plate:
                 return f"Hiba: A {license_plate} rendszámú járműhöz aktív bérlés tartozik, ezért nem törölhető! Próbálja újra a bérleti idő lejárta után."
 
-        # 2. Megkeressük és töröljük a járművet
+        # Megkeressük és töröljük a járművet
         vehicle_to_remove = None
         for v in self.__vehicles:
             if v.license_plate == license_plate:
@@ -156,13 +160,13 @@ class Company:
     def cancel_rental(self, license_plate: str, start_date_str: str):
         """Lemond egy meglévő bérlést a rendszám és a kezdődátum alapján, esetleges kötbérrel."""
 
-        # 1. Dátum konvertálása és ellenőrzése
+        # Dátum konvertálása és ellenőrzése
         try:
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         except ValueError:
             return "Hiba: Hibás dátumformátum! Használja a YYYY-MM-DD formátumot."
 
-        # 2. Megkeressük a bérlést a rendszerben
+        # Megkeressük a bérlést a rendszerben
         rental_to_cancel = None
         for r in self.__rentals:
             if r.vehicle.license_plate == license_plate and r.start_date == start_date_str:
@@ -172,13 +176,13 @@ class Company:
         if not rental_to_cancel:
             return "Hiba: Nem található ilyen bérlés a rendszerben a megadott adatokkal."
 
-        # 3. Kiszámoljuk a dátumok közötti különbséget
+        # Kiszámoljuk a dátumok közötti különbséget
         today = datetime.now().date()
         days_difference = (start_date - today).days
 
         self.__rentals.remove(rental_to_cancel)
 
-        # 4. Eldöntjük, hogy kell-e büntetést fizetni (ha 1 nap, vagy annál kevesebb van hátra)
+        # Eldöntjük, hogy kell-e büntetést fizetni (ha 1 nap, vagy annál kevesebb van hátra)
         if days_difference <= 1:
             # Kiszámoljuk a teljes ár 25%-át
             # noinspection PyUnresolvedReferences
@@ -190,14 +194,14 @@ class Company:
     def rent_vehicle(self, license_plate: str, start_date_str: str, end_date_str: str):
         """Kikölcsönöz egy járművet egy adott időszakra."""
 
-        # 1. Dátumok formátumának ellenőrzése és konvertálása
+        # Dátumok formátumának ellenőrzése és konvertálása
         try:
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
             end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
         except ValueError:
             return "Hiba: Érvénytelen naptári nap vagy rossz formátum! Kérem, próbálja újra és valós dátumot adjon meg (YYYY-MM-DD)."
 
-        # 2. Logikai ellenőrzések a dátumokra
+        # Logikai ellenőrzések a dátumokra
         today = datetime.now().date()
         tomorrow = today + timedelta(days=1)
 
@@ -207,7 +211,7 @@ class Company:
         if end_date < start_date:
             return "Hiba: A bérlés vége dátum nem lehet korábban, mint a bérlés kezdete."
 
-        # 3. Megkeressük a járművet a rendszám alapján
+        # Megkeressük a járművet a rendszám alapján
         vehicle_to_rent: Vehicle = None
         for v in self.__vehicles:
             if v.license_plate == license_plate:
@@ -217,7 +221,7 @@ class Company:
         if vehicle_to_rent is None:
             return "Hiba: Nincs ilyen rendszámú jármű a rendszerben."
 
-        # 4. Ellenőrizzük, hogy foglalt-e már a megadott időszakban
+        # Ellenőrizzük, hogy foglalt-e már a megadott időszakban
         for r in self.__rentals:
             if r.vehicle.license_plate == license_plate:
                 r_start = datetime.strptime(r.start_date, "%Y-%m-%d").date()
@@ -226,7 +230,7 @@ class Company:
                 if start_date <= r_end and end_date >= r_start:
                     return f"Hiba: Ezt a járművet már kibérelték a {r.start_date} - {r.end_date} időszakban. Kérem válasszon a futó foglaláson kívüli időpontot, vagy másik járművet."
 
-        # 5. Ha minden rendben, kiszámoljuk az árat és rögzítjük a bérlést
+        # Ha minden rendben, kiszámoljuk az árat és rögzítjük a bérlést
         days = (end_date - start_date).days
         if days == 0:
             days = 1  # Ha aznap hozza vissza, az is 1 napi díj
