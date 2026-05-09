@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 # ==========================================
@@ -73,20 +73,30 @@ class Truck(Vehicle):
 class Rental:
     """Egy adott bérlés osztálya."""
 
-    def __init__(self, vehicle: Vehicle, date: str):
+    def __init__(self, vehicle: Vehicle, start_date: str, end_date:str, total_price: int):
         self.__vehicle = vehicle
-        self.__date = date
+        self.__start_date = start_date
+        self.__end_date = end_date
+        self.__total_price = total_price
 
     @property
     def vehicle(self):
         return self.__vehicle
 
     @property
-    def date(self):
+    def start_date(self):
         return self.__date
 
+    @property
+    def end_date(self):
+        return self.__end_date
+
+    @property
+    def total_price(self):
+        return self.__total_price
+
     def info(self):
-        return f"Bérlés rögzítve: {self.vehicle.license_plate} | Dátum: {self.date} | Fizetendő: {self.vehicle.rental_price} HUF"
+        return f"Bérlés rögzítve: {self.vehicle.license_plate} | Dátum: {self.start_date} - {self.end_date} | Fizetendő: {self.total_price} HUF"
 
 
 # ==========================================
@@ -120,6 +130,68 @@ class Company:
             print(v.info())
         print("-" * 30)
 
+    def rent_vehicle(self, license_plate: str, start_date_str: str, end_date_str: str):
+        """Kikölcsönöz egy járművet egy adott időszakra."""
+
+        # 1. Dátumok formátumának ellenőrzése és konvertálása
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return "Hiba: Hibás dátumformátum! Használja a YYYY-MM-DD formátumot."
+
+        # 2. Logikai ellenőrzések a dátumokra
+        today = datetime.now().date()
+        tomorrow = today + timedelta(days=1)
+
+        if start_date < tomorrow:
+            return "Hiba: Csak a holnapi naptól lehet bérlést rögzíteni."
+
+        if end_date < start_date:
+            return "Hiba: A visszahozás dátuma nem lehet korábban, mint a bérlés kezdete."
+
+        # 3. Megkeressük a járművet a rendszám alapján
+        vehicle_to_rent = None
+        for v in self.__vehicles:
+            if v.license_plate == license_plate:
+                vehicle_to_rent = v
+                break
+
+        if vehicle_to_rent is None:
+            return "Hiba: Nincs ilyen rendszámú jármű a rendszerben."
+
+        # 4. Ellenőrizzük, hogy foglalt-e már a megadott időszakban (ÁTFEDÉS VIZSGÁLAT)
+        for r in self.__rentals:
+            if r.vehicle.license_plate == license_plate:
+                r_start = datetime.strptime(r.start_date, "%Y-%m-%d").date()
+                r_end = datetime.strptime(r.end_date, "%Y-%m-%d").date()
+
+                # Két időszak akkor fedi egymást, ha az "A" kezdete kisebb-egyenlő mint "B" vége,
+                # ÉS az "A" vége nagyobb-egyenlő mint "B" kezdete.
+                if start_date <= r_end and end_date >= r_start:
+                    return f"Hiba: Ezt a járművet már kibérelték a {r.start_date} - {r.end_date} időszakban."
+
+        # 5. Ha minden rendben, kiszámoljuk az árat és rögzítjük a bérlést
+        days = (end_date - start_date).days
+        if days == 0:
+            days = 1  # Ha aznap hozza vissza, az is 1 napi díj
+
+        total_price = days * vehicle_to_rent.rental_price
+
+        new_rental = Rental(vehicle_to_rent, start_date_str, end_date_str, total_price)
+        self.__rentals.append(new_rental)
+
+        return f"Sikeres bérlés! Időtartam: {days} nap. Fizetendő összesen: {total_price} HUF."
+
+    def list_rentals(self):
+        """Kilistázza az összes rögzített bérlést."""
+        print(f"\n--- {self.name} Aktuális Bérlései ---")
+        if not self.__rentals:
+            print("Jelenleg nincs aktív bérlés a rendszerben.")
+        else:
+            for r in self.__rentals:
+                print(r.info())
+        print("-" * 30)
 
 
 """Kiíratás és Tesztelés"""
@@ -157,6 +229,7 @@ if __name__ == "__main__":
     company.add_vehicle(car6)
     company.add_vehicle(car7)
     company.add_vehicle(car8)
+
     # Teherautók hozzáadása a kölcsönzőhöz
     company.add_vehicle(truck1)
     company.add_vehicle(truck2)
@@ -168,4 +241,101 @@ if __name__ == "__main__":
     company.add_vehicle(truck8)
 
     # A kölcsönző járműparkjának listázása
-    company.list_vehicles()
+    def list_vehicles(self):
+        """Kilistázza az elérhető járműveket típus szerint csoportosítva."""
+        print(f"\n--- {self.name} Járműparkja ---")
+
+        print("\n[ Személyautók ]")
+        for v in self.__vehicles:
+            if isinstance(v, Auto):  # Csak a személyautókat írja ki
+                print(v.info())
+
+        print("\n[ Teherautók ]")
+        for v in self.__vehicles:
+            if isinstance(v, Truck):  # Csak a teherautókat írja ki
+                print(v.info())
+
+        print("-" * 30)
+
+        # === FELHASZNÁLÓI INTERFÉSZ (CLI) ===
+        print("\nÜdvözöljük az OOP Autókölcsönző Rendszerben!")
+
+        while True:
+            print("\n" + "=" * 30)
+            print("Válasszon az alábbi műveletek közül:")
+            print("1. Elérhető járművek listázása")
+            print("2. Jármű bérlése")
+            print("3. Bérlés lemondása")
+            print("4. Aktuális bérlések listázása")
+            print("5. Kilépés")
+            print("=" * 30)
+
+            valasztas = input("Adja meg a kívánt menüpont számát (1-5): ")
+
+            if valasztas == "1":
+                company.list_vehicles()
+
+            elif valasztas == "2":
+                rendszam = input("Kérem a bérelni kívánt jármű rendszámát (pl. HKR-219): ").upper()
+                kezdo_datum = input("Kérem a bérlés KEZDŐ dátumát (YYYY-MM-DD): ")
+                veg_datum = input("Kérem a bérlés VÉGSŐ dátumát (YYYY-MM-DD): ")
+                eredmeny = company.rent_vehicle(rendszam, kezdo_datum, veg_datum)
+                print(f"\n-> {eredmeny}")
+
+            elif valasztas == "3":
+                rendszam = input("Kérem a lemondani kívánt jármű rendszámát: ").upper()
+                kezdo_datum = input("Kérem a lemondani kívánt bérlés KEZDŐ dátumát (YYYY-MM-DD): ")
+                eredmeny = company.cancel_rental(rendszam, kezdo_datum)
+                print(f"\n-> {eredmeny}")
+
+            elif valasztas == "4":
+                company.list_rentals()
+
+            elif valasztas == "5":
+                print("\nKöszönjük, hogy az OOP Autókölcsönzőt használta! Viszontlátásra!")
+                break  # Ez a parancs lépteti ki a programot a végtelen ciklusból
+
+            else:
+                print("\n-> Hiba: Érvénytelen választás. Kérem, 1 és 5 közötti számot adjon meg.")
+
+
+    # === FELHASZNÁLÓI INTERFÉSZ (CLI) ===
+    print("\nÜdvözöljük az OOP Autókölcsönző Rendszerben!")
+
+    while True:
+        print("\n" + "=" * 30)
+        print("Válasszon az alábbi műveletek közül:")
+        print("1. Elérhető járművek listázása")
+        print("2. Jármű bérlése")
+        print("3. Bérlés lemondása")
+        print("4. Aktuális bérlések listázása")
+        print("5. Kilépés")
+        print("=" * 30)
+
+        valasztas = input("Adja meg a kívánt menüpont számát (1-5): ")
+
+        if valasztas == "1":
+            company.list_vehicles()
+
+        elif valasztas == "2":
+            rendszam = input("Kérem a bérelni kívánt jármű rendszámát (pl. HKR-219): ").upper()
+            kezdo_datum = input("Kérem a bérlés KEZDŐ dátumát (YYYY-MM-DD): ")
+            veg_datum = input("Kérem a bérlés VÉGSŐ dátumát (YYYY-MM-DD): ")
+            eredmeny = company.rent_vehicle(rendszam, kezdo_datum, veg_datum)
+            print(f"\n-> {eredmeny}")
+
+        elif valasztas == "3":
+            rendszam = input("Kérem a lemondani kívánt jármű rendszámát: ").upper()
+            kezdo_datum = input("Kérem a lemondani kívánt bérlés KEZDŐ dátumát (YYYY-MM-DD): ")
+            eredmeny = company.cancel_rental(rendszam, kezdo_datum)
+            print(f"\n-> {eredmeny}")
+
+        elif valasztas == "4":
+            company.list_rentals()
+
+        elif valasztas == "5":
+            print("\nKöszönjük, hogy az OOP Autókölcsönzőt használta! Viszontlátásra!")
+            break  # Ez a parancs lépteti ki a programot a végtelen ciklusból
+
+        else:
+            print("\n-> Hiba: Érvénytelen választás. Kérem, 1 és 5 közötti számot adjon meg.")
